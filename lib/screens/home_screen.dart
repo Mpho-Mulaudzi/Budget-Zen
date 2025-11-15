@@ -4,10 +4,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/monthly_summary.dart';
 import '../widgets/currency_picker.dart';
+import '../widgets/language_picker.dart';
 import '../services/ad_service.dart';
 import '../theme_provider.dart';
+import '../widgets/app_localizations.dart';
 import '../widgets/about_page.dart';
 import '../widgets/privacy_policy_page.dart';
+import '../language_provider.dart';
 import 'package:huawei_ads/huawei_ads.dart' as hms;
 
 class HomeScreen extends StatefulWidget {
@@ -25,16 +28,20 @@ class _HomeScreenState extends State<HomeScreen> {
   bool adShownForExpense = false;
   hms.BannerView? _banner;
 
-  final List<Map<String, dynamic>> categories = [
-    {"name": "Rent", "icon": Icons.home, "color": Colors.orange},
-    {"name": "Transport", "icon": Icons.directions_car, "color": Colors.blue},
-    {"name": "Groceries", "icon": Icons.shopping_cart, "color": Colors.green},
-    {"name": "Food", "icon": Icons.fastfood, "color": Colors.pinkAccent},
-    {"name": "Health", "icon": Icons.health_and_safety, "color": Colors.red},
-    {"name": "Entertainment", "icon": Icons.movie, "color": Colors.purple},
-    {"name": "Utilities", "icon": Icons.lightbulb, "color": Colors.yellow},
-    {"name": "Other", "icon": Icons.wallet, "color": Colors.grey},
-  ];
+  // Categories will be dynamically localized
+  List<Map<String, dynamic>> get categories {
+    final loc = AppLocalizations.of(context);
+    return [
+      {"name": loc.rent, "icon": Icons.home, "color": Colors.orange},
+      {"name": loc.transport, "icon": Icons.directions_car, "color": Colors.blue},
+      {"name": loc.groceries, "icon": Icons.shopping_cart, "color": Colors.green},
+      {"name": loc.food, "icon": Icons.fastfood, "color": Colors.pinkAccent},
+      {"name": loc.health, "icon": Icons.health_and_safety, "color": Colors.red},
+      {"name": loc.entertainment, "icon": Icons.movie, "color": Colors.purple},
+      {"name": loc.utilities, "icon": Icons.lightbulb, "color": Colors.yellow},
+      {"name": loc.other, "icon": Icons.wallet, "color": Colors.grey},
+    ];
+  }
 
   @override
   void initState() {
@@ -46,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await _loadPrefs();
     await AdManager().initialize();
     _banner = hms.BannerView(
-      adSlotId:'testw6vs28auh3', //'o00thys67r',
+      adSlotId:'o00thys67r',
       size: hms.BannerAdSize.s320x50,
     );
     setState(() {});
@@ -79,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _addTransaction(String type) {
+    final loc = AppLocalizations.of(context);
     final controller = TextEditingController();
     String selectedCategory = categories.first["name"];
 
@@ -88,9 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
         final theme = Theme.of(context);
         return AlertDialog(
           backgroundColor: theme.colorScheme.surface,
-          // 💎 always white background
           title: Text(
-            "Add ${type == "income" ? "Income" : "Expense"}",
+            type == "income" ? loc.addIncome : loc.addExpense,
             style: TextStyle(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.bold),
@@ -103,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   controller: controller,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: "Amount ($currency)",
+                    labelText: "${loc.amount} ($currency)",
                     border: const OutlineInputBorder(),
                   ),
                 ),
@@ -111,9 +118,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     value: selectedCategory,
-                    decoration: const InputDecoration(
-                      labelText: "Category",
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: loc.category,
+                      border: const OutlineInputBorder(),
                     ),
                     items: categories
                         .map((c) => DropdownMenuItem<String>(
@@ -130,7 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel", style: TextStyle(color: theme.colorScheme.secondary)),
+              child: Text(loc.cancel, style: TextStyle(color: theme.colorScheme.secondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -151,8 +158,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 } else {
                   if (amount > balance) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Insufficient balance for this expense!"),
+                      SnackBar(
+                        content: Text(loc.insufficientBalance),
                       ),
                     );
                     return;
@@ -171,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 _savePrefs();
                 setState(() {});
               },
-              child: const Text("Save"),
+              child: Text(loc.save),
             ),
           ],
         );
@@ -202,6 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final theme = Theme.of(context);
     final isDark = themeProvider.isDarkTheme;
+    final loc = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -209,17 +217,21 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: false,
         title: Row(
           mainAxisSize: MainAxisSize.min,
-          children: const [
-            AppLogo(size: 36),
-            SizedBox(width: 8),
-            Text("BudgetZen",
-            style: TextStyle(
-              fontSize: 14
-            ),
+          children: [
+            const AppLogo(size: 36),
+            const SizedBox(width: 8),
+            Text(
+              loc.appName,
+              style: const TextStyle(fontSize: 14),
             ),
           ],
         ),
         actions: [
+          IconButton(
+            onPressed: () => showLanguagePicker(context),
+            icon: const Icon(Icons.language),
+            tooltip: loc.selectLanguage,
+          ),
           IconButton(
             onPressed: _chooseCurrency,
             icon: const Icon(Icons.currency_exchange_rounded),
@@ -230,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
           )
         ],
       ),
-      drawer: _buildDrawer(context, theme),
+      drawer: _buildDrawer(context, theme, loc),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20),
@@ -246,9 +258,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Current Balance",
+                        Text(loc.currentBalance,
                             style:
-                            TextStyle(fontSize: 14, color: Colors.grey)),
+                            const TextStyle(fontSize: 14, color: Colors.grey)),
                         const SizedBox(height: 8),
                         Text(
                           "$currency${balance.toStringAsFixed(2)}",
@@ -266,23 +278,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).brightness == Brightness.light
-                  ? Colors.white
-                  : theme.colorScheme.tertiary,
+                          ? Colors.white
+                          : theme.colorScheme.tertiary,
                     ),
                     onPressed: () => _addTransaction("income"),
                     icon:  Icon(Icons.add,
-                        color: Theme.of(context).brightness == Brightness.light
-                        ? theme.colorScheme.primary
-                        : Colors.white,
+                      color: Theme.of(context).brightness == Brightness.light
+                          ? theme.colorScheme.primary
+                          : Colors.white,
                     ),
-                    label: Text("Add Income",
+                    label: Text(loc.addIncome,
                       style: TextStyle(
-                        color: Theme.of(context).brightness == Brightness.light
-                            ? theme.colorScheme.primary
-                            : Colors.white,
-                        fontSize: 11
+                          color: Theme.of(context).brightness == Brightness.light
+                              ? theme.colorScheme.primary
+                              : Colors.white,
+                          fontSize: 11
                       ),
-
                     ),
                   ),
                 ),
@@ -294,22 +305,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     onPressed: () => _addTransaction("expense"),
                     icon: const Icon(Icons.remove,color: Colors.white),
-                    label: const Text("Add Expense",
-                      style: TextStyle(
-                        color: Colors.white, fontSize: 11)
-
+                    label: Text(loc.addExpense,
+                        style: const TextStyle(
+                            color: Colors.white, fontSize: 11)
                     ),
                   ),
                 ),
               ]),
               const SizedBox(height: 30),
-              // 🟢 Monthly summary title visible in light mode
               Text(
-                "Monthly Summary",
+                loc.monthlySummary,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  // Use adaptive color for better visibility on light mode
                   color: Theme.of(context).brightness == Brightness.light
                       ? theme.colorScheme.secondary
                       : Colors.white,
@@ -318,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 10),
               MonthlySummary(expenses: expenses, currency: currency),
               const SizedBox(height: 30),
-              Text("Recent Expenses",
+              Text(loc.recentExpenses,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16,
                     color: Theme.of(context).brightness == Brightness.light
                         ? theme.colorScheme.secondary
@@ -371,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Drawer _buildDrawer(BuildContext context, ThemeData theme) {
+  Drawer _buildDrawer(BuildContext context, ThemeData theme, AppLocalizations loc) {
     return Drawer(
       child: SafeArea(
         child: ListView(
@@ -380,11 +388,11 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(color: theme.colorScheme.primary),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  AppLogo(size: 70),
-                  SizedBox(height: 10),
-                  Text("BudgetZen",
-                      style: TextStyle(
+                children: [
+                  const AppLogo(size: 70),
+                  const SizedBox(height: 10),
+                  Text(loc.appName,
+                      style: const TextStyle(
                           color: Colors.white,
                           fontFamily: 'Poppins',
                           fontSize: 22))
@@ -393,9 +401,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: Icon(Icons.info,
-              color: theme.colorScheme.primary),
+                  color: theme.colorScheme.primary),
               title: Text(
-                "About",
+                loc.about,
                 style: TextStyle(color: theme.colorScheme.secondary),
               ),
               onTap: () => Navigator.push(
@@ -407,7 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: Icon(Icons.privacy_tip,
                   color: theme.colorScheme.primary),
               title: Text(
-                "Privacy Policy",
+                loc.privacyPolicy,
                 style: TextStyle(color: theme.colorScheme.secondary),
               ),
               onTap: () => Navigator.push(
@@ -420,7 +428,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: theme.colorScheme.primary
               ),
               title: Text(
-                "Clear All Data",
+                loc.clearAllData,
                 style: TextStyle(color: theme.colorScheme.secondary),
               ),
               onTap: _resetAll,

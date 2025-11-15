@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import '../widgets/app_logo.dart';
+import '../widgets/app_localizations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -23,10 +24,12 @@ class _SplashScreenState extends State<SplashScreen>
     _controller.forward();
 
     Future.delayed(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
     });
   }
 
@@ -37,37 +40,41 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF80DED9), Color(0xFF068D9D)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF80DED9), Color(0xFF068D9D)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-      ),
-      child: FadeTransition(
-        opacity: _fadeIn,
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              AppLogo(size: 120),
-              SizedBox(height: 20),
-              Text(
-                "BudgetZen",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2),
-              ),
-              SizedBox(height: 10),
-              CircularProgressIndicator(color: Colors.white),
-            ],
+        child: FadeTransition(
+          opacity: _fadeIn,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const AppLogo(size: 120),
+                const SizedBox(height: 20),
+                Text(
+                  loc.appName,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2),
+                ),
+                const SizedBox(height: 10),
+                const CircularProgressIndicator(color: Colors.white),
+              ],
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

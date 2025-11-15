@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/currency_service.dart';
+import '../widgets/app_localizations.dart';
 
 /// Convert ISO country code (e.g., "US") → 🇺🇸 emoji flag
 String flagFor(String countryCode) {
@@ -14,6 +15,7 @@ Future<Map<String, String>?> showCurrencyPicker(
     String currentSymbol,
     ) async {
   final theme = Theme.of(context);
+  final loc = AppLocalizations.of(context);
   final allCurrencies = CurrencyService().getAllCurrencies();
 
   // Local state for search
@@ -50,7 +52,7 @@ Future<Map<String, String>?> showCurrencyPicker(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Select Currency",
+                  loc.selectCurrency,
                   style: TextStyle(
                     color: theme.colorScheme.primary,
                     fontWeight: FontWeight.bold,
@@ -63,11 +65,11 @@ Future<Map<String, String>?> showCurrencyPicker(
                 TextField(
                   controller: searchController,
                   onChanged: updateSearch,
-                  style: TextStyle(
-                    fontSize: 11
+                  style: const TextStyle(
+                      fontSize: 11
                   ),
                   decoration: InputDecoration(
-                    hintText: "Search by country...",
+                    hintText: loc.searchByCountry,
                     prefixIcon: const Icon(Icons.search),
                     filled: true,
                     fillColor: theme.colorScheme.surface.withOpacity(0.1),
