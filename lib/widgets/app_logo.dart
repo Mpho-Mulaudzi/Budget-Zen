@@ -9,13 +9,26 @@ class AppLogo extends StatelessWidget {
     width: size,
     height: size,
     decoration: BoxDecoration(
-        color: const Color(0xFF00E676),
-        borderRadius: BorderRadius.circular(size)),
+      gradient: const LinearGradient(
+        colors: [Color(0xFF068D9D), Color(0xFF80DED9)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(size * 0.3),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          offset: const Offset(0, 4),
+          blurRadius: 8,
+        )
+      ],
+    ),
     child: Center(
-        child: Text("Z",
-            style: TextStyle(
-                color: const Color(0xFF212121),
-                fontSize: size * 0.6,
-                fontWeight: FontWeight.w900))),
+      child: Icon(
+        Icons.account_balance_wallet_rounded,
+        color: Colors.white,
+        size: size * 0.6,
+      ),
+    ),
   );
 }

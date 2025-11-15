@@ -1,3 +1,5 @@
+
+
 pluginManagement {
     def flutterSdkPath = {
         def properties = new Properties()
@@ -16,10 +18,53 @@ pluginManagement {
     }
 }
 
+
+
 plugins {
     id "dev.flutter.flutter-plugin-loader" version "1.0.0"
-    id "com.android.application" version "8.1.0" apply false
-    id "org.jetbrains.kotlin.android" version "1.8.22" apply false
+    id "com.android.application" version "8.6.0" apply false
+    id "org.jetbrains.kotlin.android" version "2.0.21" apply false
 }
 
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url "https://developer.huawei.com/repo/" }
+
+        // ✅ Add this line (Google-hosted Flutter artifacts)
+        maven { url "https://storage.googleapis.com/download.flutter.io" }
+
+        // --- Flutter SDK local engine paths ---
+        def flutterSdkPath = {
+            def props = new Properties()
+            file("local.properties").withInputStream { props.load(it) }
+            props.getProperty("flutter.sdk")
+        }()
+
+        [
+                "android-arm",
+                "android-arm64",
+                "android-arm-profile",
+                "android-arm64-profile",
+                "android-arm-release",
+                "android-arm64-release",
+                "android-x86",
+                "android-x64",
+                "android-x64-profile",
+                "android-x64-release"
+        ].each { folder ->
+            def path = "$flutterSdkPath/bin/cache/artifacts/engine/${folder}"
+            if (file(path).isDirectory()) {
+                maven { url path }
+            }
+        }
+    }
+}
+
+
 include ":app"
+include ":huawei_ads"
+project(":huawei_ads").projectDir = file("../plugins/huawei_ads-13.4.77+300/android")

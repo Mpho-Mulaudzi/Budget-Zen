@@ -1,15 +1,40 @@
+buildscript {
+    ext.kotlin_version = '2.1.0'
+    repositories {
+        google()
+        mavenCentral()
+        // ✅ Huawei Maven repository
+        maven { url 'https://developer.huawei.com/repo/' }
+
+        def flutterSdkPath = {
+            def props = new Properties()
+            file("local.properties").withInputStream { props.load(it) }
+            props.getProperty("flutter.sdk")
+        }()
+        maven { url "$flutterSdkPath/bin/cache/artifacts/engine/android" }
+    }
+    dependencies {
+
+        classpath 'com.android.tools.build:gradle:8.6.0'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21"
+
+        classpath 'com.huawei.agconnect:agcp:1.9.1.300'
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+        // ✅ Ensure Huawei repo is also visible to all modules
+        maven { url 'https://developer.huawei.com/repo/' }
     }
 }
 
 rootProject.buildDir = "../build"
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(":app")
 }
 

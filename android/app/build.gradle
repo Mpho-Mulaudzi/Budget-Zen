@@ -1,14 +1,24 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id "com.android.application"
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
+    id 'com.huawei.agconnect'
 }
-
+def keystoreProperties = new Properties()
+def keystoreFile = rootProject.file("key.properties")
+if (keystoreFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystoreFile))
+}
 android {
     namespace = "com.orion.budget_zen"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 35
+//    compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
+
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
@@ -29,11 +39,26 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+    signingConfigs {
+        release {
+            if (keystoreProperties['storeFile']) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file(keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+    }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Use the release signing key instead of debug
+            signingConfig = signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+        }
+        debug {
+            // Keep default debug signing
             signingConfig = signingConfigs.debug
         }
     }
@@ -41,4 +66,7 @@ android {
 
 flutter {
     source = "../.."
+}
+dependencies {
+    implementation project(":huawei_ads")
 }
