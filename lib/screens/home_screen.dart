@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String currency = "\$";
   bool adShownForIncome = false;
   bool adShownForExpense = false;
-  hms.BannerView? _banner;
+  // hms.BannerView? _banner;
 
   // Categories will be dynamically localized
   List<Map<String, dynamic>> get categories {
@@ -52,12 +52,59 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _init() async {
     await _loadPrefs();
     await AdManager().initialize();
-    _banner = hms.BannerView(
-      adSlotId:'o00thys67r',
-      size: hms.BannerAdSize.s320x50,
-    );
+    // _banner = hms.BannerView(
+    //   adSlotId:'o00thys67r',
+    //   size: hms.BannerAdSize.s320x50,
+    // );
     setState(() {});
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkPrivacyPolicy();
+    });
   }
+
+
+  Future<void> _checkPrivacyPolicy() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool accepted = prefs.getBool('privacyAccepted') ?? false;
+    if (!accepted) {
+      _showPrivacyPolicyDialog();
+    }
+  }
+
+  void _showPrivacyPolicyDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF2C2C2C),
+        title: const Text("Privacy Policy",
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: const Text(
+              "Your privacy is important. By using this app, you agree to our Privacy Policy. "
+                  "Please read it carefully.",
+              style: TextStyle(color: Colors.white70),
+            ),
+          ),
+        ),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676)),
+            onPressed: () async {
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setBool('privacyAccepted', true);
+              Navigator.of(context).pop();
+            },
+            child: const Text("Accept", style: TextStyle(color: Colors.black)),
+          ),
+        ],
+      ),
+    );
+  }
+  // -------------------------------------------------------------------
+
 
   Future<void> _loadPrefs() async {
     final prefs = await SharedPreferences.getInstance();
@@ -371,7 +418,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               }),
               const SizedBox(height: 20),
-              if (_banner != null) SizedBox(height: 50, child: _banner),
+              SizedBox(
+                height: 50,
+                child: AdManager().getBanner(),
+              ),
+              // if (_banner != null) SizedBox(height: 50, child: _banner),
             ],
           ),
         ),
